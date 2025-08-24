@@ -1,9 +1,19 @@
 #!/bin/bash
 
-html="baldeos.html"
+html="baldeos-source.html"
 table="table.html"
 lines="lines.txt"
 csv="baldeos.csv"
+
+function download_baldeos () {
+    curl 'https://limpiezademalaga.es/baldeo-diario/' -o $html
+}
+
+function extract_information () {
+ xmllint --html --xpath '//table/tbody/tr/td' $html | grep --invert-match -E 'Riego operativo.*|Riego incidencia.*' > $table
+
+ remove_html_tags $table
+}
 
 function remove_html_tags () {
     while IFS= read -r line; do
@@ -21,13 +31,13 @@ function remove_html_tags () {
    done < $1
 }
 
-curl 'https://limpiezademalaga.es/baldeo-diario/' -o $html
+function add_lines_to_csv () {
+ cat $lines | paste -d "," - - - - - >> $csv
+}
 
-xmllint --html --xpath '//table/tbody/tr/td' $html | grep --invert-match -E 'Riego operativo.*|Riego incidencia.*' > $table
-
-remove_html_tags $table
-
-cat $lines | paste -d "," - - - - - >> $csv
+download_baldeos
+extract_information
+add_lines_to_csv
 
 rm $table
 rm $lines
