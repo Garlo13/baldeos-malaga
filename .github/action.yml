@@ -1,0 +1,41 @@
+
+name: Baldeos Malaga
+on:
+  schedule:
+    - cron: '0 13 * * *'
+
+jobs:
+  donwload-and-safe-baldeos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+            pipx install csvtotable
+            sudo apt-get update
+            sudo apt-get install libxml2-utils
+      - name: Create CSV
+        run: | 
+            chmod +x init.sh
+            ./init.sh
+      - name: Create html
+        run: | 
+            chmod +x convert-to-html.sh
+            ./convert-to-html.sh
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update baldeos CSV
+          file_pattern: 'baldeos.csv'
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update baldeos HTML
+          file_pattern: 'baldeos.html'
+   
